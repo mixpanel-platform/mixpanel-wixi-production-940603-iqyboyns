@@ -7,9 +7,39 @@
     <script src="https://cdn.mxpnl.com/libs/mixpanel-platform/build/mixpanel-platform.v0.latest.min.js"></script>
   </head>
   <body class="mixpanel-platform-body">
-    <h1>Hello, World!</h1>
     <script>
-      // Run queries and display results here
+      var eventName = 'Button clicked';                         // replace with event name of your choice
+      var $dau = MP.api.segment(eventName, 'mp_country_code', { // use segment query on eventName, and segment the data by country
+        from: moment().subtract(30, 'days'),                    // 'from' date should be one month ago
+        to: moment().subtract(1, 'days'),                       // 'to' date should be yesterday; partial data for today impacts DAU more than it does MAU
+        unit: 'day',                                            // we want the number of button clicks for each day of the month
+        type: 'unique'                                          // daily counts should be unique; multiple clicks by the same person in one day should be counted only once
+      });
+
+      var $mau = MP.api.segment(eventName, 'mp_country_code', { // use segment query on eventName, and segment the data by country
+        from: moment().subtract(30, 'days'),                    // 'from' date should be one month ago
+        to: moment().subtract(1, 'days'),                       // 'to' date should be yesterday; partial data for today impacts DAU more than it does MAU
+        unit: 'month',                                          // we want the number of button clicks that occured over the month
+        type: 'unique'                                          // multiple clicks by the same person during any point in the month should be counted only once
+      });
+
+      $.when($dau, $mau).done(function(dau, mau) {
+        // average the DAU values and divide them by the MAU ones
+        // (we sum the MAU in the case where the 30 days spans over two months)
+        var dauMau = dau.avg().divide(mau.sum()).values();
+        var sortedData = _.chain(dauMau) // enables function chaining
+          .pairs()                       // convert each object to an array for sorting
+          .sortBy(function(dauMau) {     // sort by the dau/mau value in descending order
+            return -dauMau[1];
+          })
+          .object()                      // convert each array back to an object
+          .value();                      // end the chaining and return the value
+
+        $('<div></div>').appendTo('body').MPChart({ // create chart
+          chartType: 'bar',                         // make it a bar chart
+          data: sortedData                          // set its data
+        });
+      });
     </script>
   </body>
 </html>
