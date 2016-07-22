@@ -8,7 +8,7 @@
   </head>
   <body class="mixpanel-platform-body">
     <script>
-      var eventName = 'Button clicked';                         // replace with event name of your choice
+      var eventName = 'Navigated to Quality';                         // replace with event name of your choice
       var $dau = MP.api.segment(eventName, 'mp_country_code', { // use segment query on eventName, and segment the data by country
         from: moment().subtract(30, 'days'),                    // 'from' date should be one month ago
         to: moment().subtract(1, 'days'),                       // 'to' date should be yesterday; partial data for today impacts DAU more than it does MAU
